@@ -1,0 +1,15 @@
+private void markZipFailed(String customerId, String remark) {
+    try {
+        String cif = customerId.split("_")[0];   // folder name is cif_branch_account
+        perfiosService.markZipFailed(cif, remark);
+    } catch (Exception ex) {
+        logger.error("Could not mark ZF for " + customerId, ex);
+    }
+}
+
+} catch (NoSuchFileException e) {
+    logger.error("Skipping {} - already claimed or conflicting target exists", customerId);
+    logger.error("NoSuchFileException "+e.getMessage());
+    markZipFailed(customerId, "Zip not created - folder not found while claiming");
+    return null;
+}
