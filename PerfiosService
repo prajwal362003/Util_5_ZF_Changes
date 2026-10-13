@@ -1,0 +1,8 @@
+// PerfiosService (interface)
+void markZipFailed(String cifNumber, String remark);
+
+// PerfiosServiceImpl
+@Override
+public void markZipFailed(String cifNumber, String remark) {
+    perfiosDAO.updateZipFailed(cifNumber, remark);
+}
