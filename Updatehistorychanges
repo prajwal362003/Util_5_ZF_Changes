@@ -1,0 +1,53 @@
+// PerfiosDetailsDAO (interface)
+void updateZipFailed(String cifNumber, String accountNumber, String remark);
+
+// PerfiosDetailsDAOImpl
+@Override
+public void updateZipFailed(String cifNumber, String accountNumber, String remark) {
+    String updateSql = "update kycupdate.kyc_perfios_customer_details "
+                     + "set cif_status='ZF', modified_date=sysdate, remark=? "
+                     + "where cif_number=? and cif_status='ZP'";
+    String historySql = "insert into kycupdate.kyc_perfios_history "
+                      + "(cif_number, Account_number, ZIP_FILE, modified_date, Remark, server, modified_by) "
+                      + "values (?,?,?,sysdate,?,?,'Zip_Creation_Utility')";
+    try {
+        int rows = jdbcTemplate.update(updateSql, remark, cifNumber);
+        logger.info("ZF status set for CIF {} , rows updated {}", cifNumber, rows);
+        if (rows > 0) {
+            jdbcTemplate.update(historySql, cifNumber, accountNumber, null, remark,
+                                ServerConfiguration.Hostname);
+            logger.info("ZF history inserted for CIF {}", cifNumber);
+        }
+    } catch (Exception e) {
+        logger.error("Exception while setting ZF for CIF " + cifNumber, e);
+    }
+}
+
+
+
+
+
+
+// PerfiosService (interface)
+void markZipFailed(String cifNumber, String accountNumber, String remark);
+
+// PerfiosServiceImpl
+@Override
+public void markZipFailed(String cifNumber, String accountNumber, String remark) {
+    perfiosDAO.updateZipFailed(cifNumber, accountNumber, remark);
+}
+
+
+
+
+
+
+
+private void markZipFailed(String customerId, String remark) {
+    try {
+        String[] p = customerId.split("_");   // cif_branch_account
+        perfiosService.markZipFailed(p[0], p.length > 2 ? p[2] : "", remark);
+    } catch (Exception ex) {
+        logger.error("Could not mark ZF for " + customerId, ex);
+    }
+}
